@@ -11,7 +11,7 @@ plex_url = os.environ['PLEX_URL']
 plex_token = os.environ['PLEX_TOKEN']
 plex = PlexServer(plex_url, plex_token)
 
-one_pace_req = requests.get('https://onepace.net/_next/data/8398imKOhghFpoEoI3UZB/en/watch.json')
+one_pace_req = requests.get('https://onepace.net/_next/data/TtwDgBpWkBKTVC0Z4pbfI/en/watch.json')
 one_pace_data = one_pace_req.json()['pageProps']['arcs']
 
 plex_show = plex.library.section('Anime').get('One Pace')
@@ -22,7 +22,7 @@ for season, arc in enumerate(one_pace_data, 1):
     try:
         plex_season = plex_show.season(season)
     except plexapi.exceptions.NotFound:
-        print('S%02d: %s Not Found' % (season, arc['title']))
+        print('S%02d: %s Not Found' % (season, arc['invariant_title']))
         continue
 
     if arc['images'][0]:
@@ -32,11 +32,11 @@ for season, arc in enumerate(one_pace_data, 1):
 
     translation = {}
     for t in arc['translations']:
-        if t['language']['code'] == 'en':
+        if t['language_code'] == 'en':
             translation = t
 
     plex_season.edit(**{
-        'title.value': arc['title'],
+        'title.value': translation['title'],
         'summary.value': (
             f'Anime Episodes: {arc["anime_episodes"]} | '
             f'Manga Chapters: {arc["manga_chapters"]}\n'
@@ -48,12 +48,12 @@ for season, arc in enumerate(one_pace_data, 1):
         try:
             plex_episode = plex_season.episode(episode['part'])
         except plexapi.exceptions.NotFound:
-            print('S%02d E%02d: %s - %s Not Found' % (season, episode['part'], arc['title'], episode['title']))
+            print('S%02d E%02d: %s - %s Not Found' % (season, episode['part'], arc['invariant_title'], episode['invariant_title']))
             continue
 
         translation = {}
         for t in episode['translations']:
-            if t['language']['code'] == 'en':
+            if t['language_code'] == 'en':
                 translation = t
 
         plex_episode.edit(**{
@@ -64,3 +64,4 @@ for season, arc in enumerate(one_pace_data, 1):
                 f"{translation['description']}"
             ),
         })
+
